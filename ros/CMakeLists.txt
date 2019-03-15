@@ -54,6 +54,18 @@ if(APPLE)
     src/dynamixel_sdk/port_handler.cpp
     src/dynamixel_sdk/port_handler_mac.cpp
   )
+elseif(WIN32)
+  add_library(dynamixel_sdk
+    src/dynamixel_sdk/packet_handler.cpp
+    src/dynamixel_sdk/protocol1_packet_handler.cpp
+    src/dynamixel_sdk/protocol2_packet_handler.cpp
+    src/dynamixel_sdk/group_sync_read.cpp
+    src/dynamixel_sdk/group_sync_write.cpp
+    src/dynamixel_sdk/group_bulk_read.cpp
+    src/dynamixel_sdk/group_bulk_write.cpp
+    src/dynamixel_sdk/port_handler.cpp
+    src/dynamixel_sdk/port_handler_windows.cpp
+  )
 else()
   add_library(dynamixel_sdk
     src/dynamixel_sdk/packet_handler.cpp
@@ -68,17 +80,32 @@ else()
   )
 endif()
 
-add_dependencies(dynamixel_sdk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(dynamixel_sdk ${catkin_LIBRARIES})
+if(WIN32)
+  set(DXL_CPP_LIB "${CMAKE_SOURCE_DIR}/../c++/lib/dxl_x64_cpp.lib")
+  add_dependencies(dynamixel_sdk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(dynamixel_sdk ${catkin_LIBRARIES} ${DXL_CPP_LIB})
+else()
+  add_dependencies(dynamixel_sdk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(dynamixel_sdk ${catkin_LIBRARIES})
+endif()
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS dynamixel_sdk
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+if(WIN32)
+  install(TARGETS dynamixel_sdk
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    CONFIGURATIONS ${CMAKE_BUILD_TYPE}
+  )
+else()
+  install(TARGETS dynamixel_sdk
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+endif()
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
